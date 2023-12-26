@@ -62,7 +62,7 @@ export const userLogin=async(req,res,next)=>{
 
 const findPackage=(depositAmount)=>{
   if (depositAmount >= 50 && depositAmount <= 999) {
-    return 'Bronze';
+    return 'Bronza';
 } else if (depositAmount >= 1000 && depositAmount <= 4999) {
     return 'Silver';
 } else if (depositAmount >= 5000 && depositAmount <= 14999) {
@@ -83,6 +83,14 @@ export const generateRandomString = () => {
   return baseString + randomDigits.toString();
 };
 
+const generateReferalIncome=async(id,capitalAmount)=>{
+    const referalIncome=capitalAmount*(0.05)
+    const sponserData=await User.findById(id)
+    const totalRaferal= sponserData.referalIncome+referalIncome;
+    const updateReferal=await User.findByIdAndUpdate(id,{referalIncome:totalRaferal})
+    return updateReferal
+}
+
 export const addUser=async(req,res,next)=>{
   try {
     const sponser = req.user._id;
@@ -90,7 +98,6 @@ export const addUser=async(req,res,next)=>{
     const userStatus = "pending";
 
     const sponserUser = await User.findById(sponser);
-    console.log(sponserUser);
     const ownSponserId = generateRandomString();
 
     const { username, email, phone, address, packageAmount, password } = req.body;
@@ -162,11 +169,7 @@ export const addUser=async(req,res,next)=>{
     next(error)
   }
 }
- const findReferalIncome=(capitalAmount)=>{
-        return (capitalAmount)*(0.05)
- }
-  // POST: User verification
-  // After first/fresh user login
+ 
   
  export const verifyUser=async (req, res,next) => {
         try {
@@ -178,10 +181,8 @@ export const addUser=async(req,res,next)=>{
                  const userId = req.user._id;
                 const user = await User.findById(userId);
 
-                const referalIncome=findReferalIncome(user.packageAmount);
-                let totalRaferal=0;
-                const sponserData = await User.findById(userId).populate("sponser")
-                console.log(sponserData.referalIncome)
+                const sponserId=user.sponser;
+                console.log(sponserId);
                 
           
                 if (user) {
@@ -194,15 +195,14 @@ export const addUser=async(req,res,next)=>{
           
                   user.aadhaar = aadhaarImage.filename;
                   user.pancard = pancardImage.filename;
-                  user.userStatus = "approved";
+                  user.userStatus = "readyToApprove";
           
                   const updatedUser = await user.save();
                   if (updatedUser) {
-                    totalRaferal=totalRaferal+referalIncome;
-                    const sponserupdate=await User.findByIdAndUpdate(sponserData._id,{referalIncome:totalRaferal})
+                    const referalIncome=generateReferalIncome(sponserId,updatedUser.packageAmount)
                     return res.status(201).json({
                       updatedUser,
-                      sponserupdate,
+                      referalIncome,
                       sts: "01",
                       msg: "User verification in progress!",
                     });
@@ -220,4 +220,66 @@ export const addUser=async(req,res,next)=>{
             
       
     };
+
+
+
+
+   export const editProfile=async(req,res,next)=>{
+      const userId=req.user._id;
+      try {
+        const userData=await User.findById(userId)
+        if(userData){
+          const{username,phone,address,password,newPassword}=req.body
+          if (password) {
+            const validPassword=bcryptjs.compareSync(password,userData.password);
+        if(!validPassword){
+            return next(errorHandler(401,'Wrong credentials'))
+        }else{
+          const hashedPassword = bcryptjs.hashSync(newPassword, 10);
+            userData.password = hashedPassword;
+        }       
+          }
+          userData.username = username || userData.username;
+          userData.address = address || userData.address;
+          userData.phone = phone || userData.phone;
+
+    const updatedUser = await userData.save();
+
+    res.status(200).json(
+      {updatedUser,
+      sts: "01",
+      msg: "Successfully Updated"})
+        }else{
+          next(errorHandler("User not found, Please Login first"))
+        }
+      } catch (error) {
+        next(error)
+      }
+   }
   
+
+
+   export const viewChilds=async(req,res,next)=>{
+     const userId=req.query.id||req.user._id;
+     try {
+      const userChilds = await User.findById(userId).populate({
+        path: "myChilds",
+        select: "username email userStatus packageAmount",
+      });
+      
+      if(userChilds){
+        const childs=userChilds.myChilds
+        res.status(200).json(
+      {childs,
+      sts: "01",
+      msg: "Success"})
+      }else{
+        next(errorHandler("No child Found"))
+      }
+      
+     } catch (error) {
+      next(error)
+     }
+     
+   }
+

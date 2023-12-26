@@ -86,7 +86,7 @@ const userSchema=new mongoose.Schema({
     },
     userStatus: {
         type: String,
-        enum: ["pending", "approved", "rejected"],
+        enum: ["pending", "readyToApprove", "approved"],
       },
       transactions: [transactionSchema],
       bankDetails: {

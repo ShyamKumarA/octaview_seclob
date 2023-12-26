@@ -93,3 +93,26 @@ export const addPackage=async(req,res,next)=>{
     next(error)
     }
 }
+
+//view all users by Admin
+export const viewAllUsers=async(req,res,next)=>{
+    const userId=req.user._id;
+
+    try {
+      const user=await User.findById(userId)
+      const userData = await User.find({ isSuperAdmin: { $ne: true } })
+     .select('username email phone userStatus');
+      if(user){
+        return res.status(201).json({
+          userData,
+          });
+
+      }else{
+        next(errorHandler("User not found"))
+      }
+      
+      
+    } catch (error) {
+      next(error)
+    }
+}
