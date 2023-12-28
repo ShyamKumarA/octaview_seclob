@@ -84,25 +84,24 @@ const userSchema=new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Package",
     },
+    topUpAmount:{
+      type:Number
+    },
+    topUpStatus:{
+      type: String,
+      enum: ["pending", "approved"],
+    },
     userStatus: {
         type: String,
         enum: ["pending", "readyToApprove", "approved"],
       },
       transactions: [transactionSchema],
-      bankDetails: {
-        holderName: String,
-        accountNum: String,
-        ifscCode: String,
-        bank: String,
-        aadhar: String,
-        pan: String,
-        aadharPhoto: String,
-        panPhoto: String,
-      },
       allTransactions: [allTransactionSchema],
       myChilds:[{type:mongoose.Schema.Types.ObjectId,
         ref:"User"}]
 },{timestamps:true});
+
+
 
 const User=mongoose.model("User",userSchema);
 
