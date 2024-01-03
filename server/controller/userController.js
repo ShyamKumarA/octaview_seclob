@@ -6,8 +6,9 @@ import upload from "../config/multiFileUpload.js";
 import Package from "../models/packageModel.js";
 import sendMail from "../config/mailer.js";
 
-//User signUp
 
+
+//User signUp
 export const signup = async (req, res, next) => {
   const { password, username, email, address, phone } = req.body;
   const ownSponserId = generateRandomString();
@@ -89,14 +90,29 @@ export const generateRandomString = () => {
 
 //generate referal income for all
 
-export const generateReferalIncome = async (id, capitalAmount) => {
+export const generateReferalIncome = async (userId,id, capitalAmount) => {
   const referalIncome = capitalAmount * 0.05;
   const sponserData = await User.findById(id);
-  const totalRaferal = sponserData.referalIncome + referalIncome;
-  const updateReferal = await User.findByIdAndUpdate(id, {
-    referalIncome: totalRaferal,
-  });
-  return updateReferal;
+  const userData=await User.findById(userId);
+  if(sponserData){
+    const totalRaferal = sponserData.referalIncome + referalIncome;
+    sponserData.referalIncome=totalRaferal;
+    sponserData.referalHistory={
+      userID:userId,
+      name:userData.username,
+      amountCredited:totalRaferal,
+      status:"Approved"
+    }
+    const updatedSponser = await userData.save();
+  if(updatedSponser){
+  return totalRaferal;
+
+  }
+  
+  }else{
+    next(errorHandler("Sponser not found"))
+  }
+  
 };
 
 //add user by user and admin
@@ -104,19 +120,34 @@ export const generateReferalIncome = async (id, capitalAmount) => {
 export const addUser = async (req, res, next) => {
   try {
     const sponser = req.user._id;
-
+    console.log(sponser);
     const userStatus = "pending";
 
-    const sponserUser = await User.findById(sponser);
+    const sponserUser1 = await User.findById(sponser);
+    console.log(sponserUser1);
+
+    let sponserUser2, sponserUser3;
+
+    const sponserId2 = sponserUser1.sponser||null;
+    if (sponserId2) { 
+      sponserUser2 = await User.findById(sponserId2);
+      console.log(sponserUser2);
+    }
+    if (sponserUser2) {
+    const sponserId3 = sponserUser2.sponser||null;
+      sponserUser3 = await User.findById(sponserId3);
+      console.log(sponserUser3);
+    }
+
     const ownSponserId = generateRandomString();
 
-    const { username, email, phone, address, packageAmount, password } =
+    const { username, email, phone, address,transactionPassword, password } =
       req.body;
-
-    const packageChosen = findPackage(packageAmount);
-    const packageData = await Package.findOne({ name: packageChosen });
+    // const packageChosen = findPackage(packageAmount);
+    // const packageData = await Package.findOne({ name: packageChosen });
     //console.log(packageData);
     const hashedPassword = bcryptjs.hashSync(password, 10);
+    const hashedTxnPassword = bcryptjs.hashSync(transactionPassword, 10);
 
     const existingUser = await User.findOne({ email });
     const existingUserByPhone = await User.findOne({ phone });
@@ -133,26 +164,36 @@ export const addUser = async (req, res, next) => {
       email,
       phone,
       address,
-      packageAmount,
-      packageChosen: packageData._id,
+      addFundStatus,
+      transactionPassword:hashedTxnPassword,
+      // packageAmount,
+      // packageChosen: packageData._id,
       password: hashedPassword,
       ownSponserId,
       earning,
       userStatus,
     });
     if (user) {
-      if (sponserUser) {
-        sponserUser.myChilds.push(user._id);
-
-        const updatedUser = await sponserUser.save();
-
+      if(sponserUser3){
+        sponserUser3.childLevel3.push(user._id);
+        await sponserUser3.save();
+      }
+      if(sponserUser2){
+        sponserUser2.childLevel2.push(user._id);
+        await sponserUser2.save();
+      }
+      if (sponserUser1) {
+        sponserUser1.childLevel1.push(user._id);
+        const updatedUser = await sponserUser1.save();     
+       
         if (updatedUser) {
           await sendMail(
             user.email,
-            packageChosen,
-            packageAmount,
+            // packageChosen,
+            // packageAmount,
             user.username,
             user.ownSponserId,
+            transactionPassword,
             password
           );
         }
@@ -164,11 +205,14 @@ export const addUser = async (req, res, next) => {
           email: user.email,
           phone: user.phone,
           address: user.address,
-          packageAmount: user.packageAmount,
-          packageChosen: user.packageChosen,
+          FundStatus:addFundStatus,
+          // packageAmount: user.packageAmount,
+          // packageChosen: user.packageChosen,
           ownSponserId: user.ownSponserId,
           earning: user.earning,
-          myChilds: user.myChilds,
+          myChild1: user.childLevel1,
+          myChild2: user.childLevel2,
+          myChild3: user.childLevel3,
           isSuperAdmin: user.isSuperAdmin,
           userStatus: user.userStatus,
         });
@@ -182,6 +226,7 @@ export const addUser = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+    console.log(error);
   }
 };
 
@@ -263,16 +308,8 @@ export const editProfile = async (req, res, next) => {
   try {
     const userData = await User.findById(userId);
     if (userData) {
-      const { username, phone, address, password, newPassword } = req.body;
-      if (password) {
-        const validPassword = bcryptjs.compareSync(password, userData.password);
-        if (!validPassword) {
-          return next(errorHandler(401, "Wrong credentials"));
-        } else {
-          const hashedPassword = bcryptjs.hashSync(newPassword, 10);
-          userData.password = hashedPassword;
-        }
-      }
+      const { username, phone, address } = req.body;
+      
       userData.username = username || userData.username;
       userData.address = address || userData.address;
       userData.phone = phone || userData.phone;
@@ -364,8 +401,9 @@ export const viewUserPackageDetails=async(req,res,next)=>{
     try {
       const user=await User.findById(userId);
       if(user){
-        user.topUpStatus = "pending";
+        user.addFundStatus = "pending";
         user.topUpAmount=amount;
+
             
         const updatedUser = await user.save();
 
@@ -380,3 +418,108 @@ export const viewUserPackageDetails=async(req,res,next)=>{
       next(error)
     }
    }
+
+   //change password
+
+   export const changePassword=async(req,res,next)=>{
+    const userId=req.user._id;
+    const userData=await User.findById(userId)
+    try {
+      if(userData){
+        const {password,newPassword}=req.body;
+      if (password) {
+        const validPassword = bcryptjs.compareSync(password, userData.password);
+        if (!validPassword) {
+          return next(errorHandler(401, "Wrong Password"));
+        } else {
+          const hashedPassword = bcryptjs.hashSync(newPassword, 10);
+          userData.password = hashedPassword;
+        }
+      }
+
+       const updatedUser = await userData.save();
+
+      res
+        .status(200)
+        .json({ updatedUser, sts: "01", msg: "Successfully Updated" });
+    } else {
+      next(errorHandler("User not found, Please Login first"));
+    }
+      
+      
+    } catch (error) {
+      next(error)
+    }
+  }
+
+
+
+  //change transation password 
+
+  export const changeTxnPassword=async(req,res,next)=>{
+    const userId=req.user._id;
+    const userData=await User.findById(userId)
+    try {
+      if(userData){
+        const {password,newPassword}=req.body;
+      if (password) {
+        const validPassword = bcryptjs.compareSync(password, userData.password);
+        if (!validPassword) {
+          return next(errorHandler(401, "Wrong Password"));
+        } else {
+          const hashedPassword = bcryptjs.hashSync(newPassword, 10);
+          userData.password = hashedPassword;
+        }
+      }
+
+       const updatedUser = await userData.save();
+
+      res
+        .status(200)
+        .json({ updatedUser, sts: "01", msg: "Successfully Updated" });
+    } else {
+      next(errorHandler("User not found, Please Login first"));
+    }
+      
+      
+    } catch (error) {
+      next(error)
+    }
+  }
+   
+
+  export const addPackageByUser=async(req,res,next)=>{
+    const userId=req.user._id;
+    try {
+    const {amount,transactionPassword,transactionCode}=req.body;
+    console.log(transactionPassword);
+      const userData=await User.findById(userId)
+      console.log(userData);
+      if(userData){
+        const validPassword = bcryptjs.compareSync(transactionPassword, userData.transactionPassword);
+        if (!validPassword) {
+          return next(errorHandler(401, "Wrong Transaction Password"));
+        } else {
+          userData.addFundStatus = "pending";
+          userData.topUpAmount=amount;
+          userData.transactionCode=transactionCode;
+          
+
+            
+        const updatedUser = await userData.save();
+
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Fund top up request send to admin" });
+        }
+          
+        }
+
+      }else{
+      next(errorHandler("User not found, Please Login first"));
+
+      }
+    } catch (error) {
+      console.log(error);
+      next(error)
+    }
+  }

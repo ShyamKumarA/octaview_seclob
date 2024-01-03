@@ -1,6 +1,6 @@
 import express from "express"
 import { protectUser } from "../middleware/authMiddleware.js"
-import { acceptUser, addAdmin, addPackage, adminLogin, approveFundAdd, getApprovedUsers, getReadyToApproveUsers, rejectUser, viewAddFundPending, viewAllUsers } from "../controller/adminController.js"
+import { acceptUser, addAdmin, addPackage, adminLogin, approveFundAdd, getApprovedUsers, getReadyToApproveUsers, rejectUser, userPackageApproval, userPackageReject, viewAddFundPending, viewAllUsers } from "../controller/adminController.js"
 
 
 const adminRouter=express.Router()
@@ -15,6 +15,10 @@ adminRouter.post("/accept-users/:id",protectUser,acceptUser)
 adminRouter.get("/reject-users",protectUser,rejectUser)
 adminRouter.get("/view-addFund-pending",protectUser,viewAddFundPending)
 adminRouter.post("/approve-addFund/:id",protectUser,approveFundAdd)
+adminRouter.post("/user-package-approval/:id",protectUser,userPackageApproval)
+adminRouter.post("/user-package-rejected/:id",protectUser,userPackageReject)
+
+
 
 
 

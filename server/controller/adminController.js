@@ -180,14 +180,14 @@ export const acceptUser = async (req, res, next) => {
     if (adminData.isSuperAdmin) {
       const userData = await User.findById(id);
       console.log(userData);
-      const sponserId=userData.sponser;
+      // const sponserId=userData.sponser;
       if (userData) {
         userData.userStatus = "approved";
 
         const updatedUser = await userData.save();
         if (updatedUser) {
-            const referalIncome=generateReferalIncome(sponserId,updatedUser.packageAmount)
-          res.status(200).json({referalIncome,updatedUser, msg: "User verification Accepted!" });
+            // const referalIncome=generateReferalIncome(sponserId,updatedUser.packageAmount)
+          res.status(200).json({updatedUser, msg: "User verification Accepted!" });
         }
       } else {
         next(errorHandler("User not Found"));
@@ -238,7 +238,7 @@ export const rejectUser = async (req, res, next) => {
     try {
       if (adminData.isSuperAdmin) {
         const userData = await User.find({
-          topUpStatus: { $eq: "pending" },
+          addFundStatus: { $eq: "pending" },
         }).select("username email phone userStatus");
         res.status(200).json({
           userData,
@@ -263,8 +263,8 @@ export const approveFundAdd = async (req, res, next) => {
     const adminData = await User.findById(adminId);
     if (adminData.isSuperAdmin) {
       const userData = await User.findById(id);
-      console.log(userData);
       const packageAmount=userData.packageAmount;
+      
       const amountToAdd=userData.topUpAmount;
       const newPackageAmount=packageAmount+amountToAdd
       const packageChosen = findPackage(newPackageAmount);
@@ -273,6 +273,10 @@ export const approveFundAdd = async (req, res, next) => {
         userData.topUpStatus = "approved";
         userData.packageAmount=newPackageAmount;
         userData.packageChosen=packageData._id;
+        userData.addFundHistory.push({
+          amount:amountToAdd,
+          date: new Date()
+        })
         userData.topUpAmount=0;
         const updatedUser = await userData.save();
         if (updatedUser) {
@@ -289,3 +293,104 @@ export const approveFundAdd = async (req, res, next) => {
   }
 };
   
+
+//admin approve initial package
+
+export const userPackageApproval=async(req,res,next)=>{
+  try{
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      const userData = await User.findById(id);
+      const packageAmount=userData.packageAmount;
+      
+      const sponserId=userData.sponser;
+      const amountToAdd=userData.topUpAmount;
+      const transactionCode=userData.transactionCode;
+      const newPackageAmount=packageAmount+amountToAdd
+      const packageChosen = findPackage(newPackageAmount);
+      const packageData = await Package.findOne({ name: packageChosen });
+      if (userData) {
+        userData.topUpStatus = "approved";
+        userData.referalStatus="initiated";
+        userData.packageAmount=newPackageAmount;
+        userData.packageChosen=packageData._id;
+        userData.transactionCode=transactionCode
+        userData.addFundHistory.push({
+          topUpAmount:amountToAdd,
+          status:"approved",
+          name:userData.username,
+          transactionCode:transactionCode
+        })
+        userData.topUpAmount=0;
+        userData.transactionCode='';
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          const referalIncome=generateReferalIncome(id,sponserId,updatedUser.packageAmount)
+          res.status(200).json({updatedUser,referalIncome, msg: "New package added successfull! Referal amount approved!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+
+
+  }catch(error){
+    next(error)
+  }
+
+}
+
+//admin Reject initial package
+
+export const userPackageReject=async(req,res,next)=>{
+  try{
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      const userData = await User.findById(id);
+      // const packageAmount=userData.packageAmount;      
+      // const sponserId=userData.sponser;
+      const amountToAdd=userData.topUpAmount;
+      const transactionCode=userData.transactionCode;
+      // const newPackageAmount=packageAmount+amountToAdd
+      // const packageChosen = findPackage(newPackageAmount);
+      // const packageData = await Package.findOne({ name: packageChosen });
+      if (userData) {
+        userData.topUpStatus = "pending";
+        userData.referalStatus="";
+        // userData.packageAmount=newPackageAmount;
+        // userData.packageChosen=packageData._id;
+        // userData.transactionCode=transactionCode
+        userData.addFundHistory.push({
+          topUpAmount:amountToAdd,
+          status:"Rejected",
+          name:userData.username,
+          transactionCode:transactionCode
+        })
+        userData.topUpAmount=0;
+        userData.transactionCode='';
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          // const referalIncome=generateReferalIncome(id,sponserId,updatedUser.packageAmount)
+          res.status(200).json({updatedUser, msg: "New package added Rejected! Referal amount approved!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+
+
+  }catch(error){
+    next(error)
+  }
+
+}

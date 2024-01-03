@@ -1,5 +1,5 @@
 import express from "express"
-import { AddFund, addUser, editProfile, userLogin, verifyUser, viewAllPackage, viewChilds, viewUserPackageDetails, viewUserProfile } from "../controller/userController.js"
+import { AddFund, addPackageByUser, addUser, changePassword, changeTxnPassword, editProfile, userLogin, verifyUser, viewAllPackage, viewChilds, viewUserPackageDetails, viewUserProfile } from "../controller/userController.js"
 import { protectUser } from "../middleware/authMiddleware.js"
 
 
@@ -14,6 +14,11 @@ router.get("/view-childs",protectUser,viewChilds)
 router.get("/view-all-package",protectUser,viewAllPackage)
 router.get("/view-user-package",protectUser,viewUserPackageDetails)
 router.post("/add-fund",protectUser,AddFund)
+router.post("/change-password",protectUser,changePassword)
+router.post("/change-tnx-password",protectUser,changeTxnPassword)
+router.post("/add-package-by-user",protectUser,addPackageByUser)
+
+
 
 
 

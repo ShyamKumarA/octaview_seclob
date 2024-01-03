@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 
 
 
-const sendMail=(mailId,packageChoosen,packageAmount, name, sponserid, password) => {
+const sendMail=(mailId, name, sponserid,transactionPassword, password) => {
   const recipient = mailId;
   
   const transporter=nodemailer.createTransport({
@@ -20,7 +20,7 @@ const sendMail=(mailId,packageChoosen,packageAmount, name, sponserid, password) 
     to: `${recipient}`,
     subject: `Hi ${name}, Registration successful.`,
     text: `Hi ${name}, Welcome to OCTA VIEW`,
-    html: `<h4>Congrats! You have joined the OCTA VIEW Group.</h4><p>Your sponserID is <strong>${sponserid}</strong><br/>Package is <strong>${packageChoosen}</strong><br/>Capital Amount is <strong>${packageAmount}</strong><br/>Username: ${name}<br />Password: ${password}</p>`,
+    html: `<h4>Congrats! You have joined the OCTA VIEW Group.</h4><p>Your sponserID is <strong>${sponserid}</strong><br/>Username: ${name}<br />Transaction Password: ${transactionPassword}<br />Password: ${password}</p>`,
   
     };
     transporter.sendMail(mailOptions, (error, info) => {

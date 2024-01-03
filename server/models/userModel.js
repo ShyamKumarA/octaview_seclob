@@ -15,9 +15,37 @@ const transactionSchema = new mongoose.Schema(
 
   const allTransactionSchema = new mongoose.Schema(
     {
-      sponserID: String,
+      userID: String,
       name: String,
       amount: Number,
+      transactionCode:String,
+      status: String
+    },
+    {
+      timestamps: true,
+    }
+  )
+
+  const addFundSchema = new mongoose.Schema(
+    {
+      name: String,
+      topUpAmount: Number,
+      transactionCode:String,
+      status: String
+    },
+    {
+      timestamps: true,
+    }
+  )
+  const ReferalAmountSchema = new mongoose.Schema(
+    {
+      userID:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
+      },
+      name: String,
+      amountCredited: Number,
+      transactionCode:String,
       status: String
     },
     {
@@ -53,6 +81,9 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true
     },
+    transactionPassword:{
+      type:String,
+    },
     aadhaar: {
         type: String,
         default: null,
@@ -69,6 +100,7 @@ const userSchema=new mongoose.Schema({
       type:Number,
       default:0
     },
+    referalHistory:[ReferalAmountSchema],
     isSuperAdmin: {
       type: Boolean,
       default: false,
@@ -79,15 +111,24 @@ const userSchema=new mongoose.Schema({
     },
     packageAmount:{
       type: Number,
+      default:0
     },
     packageChosen: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Package",
     },
+    addFundHistory: [addFundSchema],
     topUpAmount:{
       type:Number
     },
-    topUpStatus:{
+    transactionCode:{
+      type:String,
+    },
+    referalStatus:{
+      type: String,
+      enum: ["initiated", "approved"],
+    },
+    addFundStatus:{
       type: String,
       enum: ["pending", "approved"],
     },
@@ -97,8 +138,12 @@ const userSchema=new mongoose.Schema({
       },
       transactions: [transactionSchema],
       allTransactions: [allTransactionSchema],
-      myChilds:[{type:mongoose.Schema.Types.ObjectId,
-        ref:"User"}]
+      childLevel1:[{type:mongoose.Schema.Types.ObjectId,
+        ref:"User"}],
+      childLevel2:[{type:mongoose.Schema.Types.ObjectId,
+        ref:"User"}],
+      childLevel3:[{type:mongoose.Schema.Types.ObjectId,
+        ref:"User"}],
 },{timestamps:true});
 
 
