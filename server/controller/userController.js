@@ -103,7 +103,7 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
       amountCredited:totalRaferal,
       status:"Approved"
     }
-    const updatedSponser = await userData.save();
+    const updatedSponser = await sponserData.save();
   if(updatedSponser){
   return totalRaferal;
 
@@ -500,7 +500,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
         if (!validPassword) {
           return next(errorHandler(401, "Wrong Transaction Password"));
         } else {
-          userData.addFundStatus = "pending";
+          userData.addFundStatus ="pending";
           userData.topUpAmount=amount;
           userData.transactionCode=transactionCode;
           

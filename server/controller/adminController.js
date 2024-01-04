@@ -270,7 +270,7 @@ export const approveFundAdd = async (req, res, next) => {
       const packageChosen = findPackage(newPackageAmount);
       const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
-        userData.topUpStatus = "approved";
+        userData.addFundStatus = "approved";
         userData.packageAmount=newPackageAmount;
         userData.packageChosen=packageData._id;
         userData.addFundHistory.push({
@@ -289,6 +289,7 @@ export const approveFundAdd = async (req, res, next) => {
       return next(errorHandler(401, "Admin Login Failed"));
     }
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -313,10 +314,10 @@ export const userPackageApproval=async(req,res,next)=>{
       const packageChosen = findPackage(newPackageAmount);
       const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
-        userData.topUpStatus = "approved";
-        userData.referalStatus="initiated";
+        userData.addFundStatus = "approved";
+        userData.referalStatus="approved";
         userData.packageAmount=newPackageAmount;
-        userData.packageChosen=packageData._id;
+        userData.packageChosen=packageData._id; 
         userData.transactionCode=transactionCode
         userData.addFundHistory.push({
           topUpAmount:amountToAdd,
@@ -340,6 +341,7 @@ export const userPackageApproval=async(req,res,next)=>{
 
 
   }catch(error){
+    console.log(error);
     next(error)
   }
 
@@ -363,7 +365,7 @@ export const userPackageReject=async(req,res,next)=>{
       // const packageChosen = findPackage(newPackageAmount);
       // const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
-        userData.topUpStatus = "pending";
+        userData.addFundStatus = "pending";
         userData.referalStatus="";
         // userData.packageAmount=newPackageAmount;
         // userData.packageChosen=packageData._id;
