@@ -262,22 +262,30 @@ export const approveFundAdd = async (req, res, next) => {
 
     const adminData = await User.findById(adminId);
     if (adminData.isSuperAdmin) {
+      let previousPackage;
       const userData = await User.findById(id);
       const packageAmount=userData.packageAmount;
-      
+      if(packageAmount) previousPackage = findPackage(packageAmount);
       const amountToAdd=userData.topUpAmount;
-      const newPackageAmount=packageAmount+amountToAdd
+      const newPackageAmount=packageAmount+amountToAdd;
+      console.log(previousPackage);
+      const transactionCode=userData.transactionCode;
       const packageChosen = findPackage(newPackageAmount);
       const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
         userData.addFundStatus = "approved";
         userData.packageAmount=newPackageAmount;
+        userData.previousPackage=previousPackage;
         userData.packageChosen=packageData._id;
+        userData.transactionCode=transactionCode
         userData.addFundHistory.push({
-          amount:amountToAdd,
-          date: new Date()
+          topUpAmount:amountToAdd,
+          status:"approved",
+          name:userData.username,
+          transactionCode:transactionCode
         })
         userData.topUpAmount=0;
+        userData.transactionCode='';
         const updatedUser = await userData.save();
         if (updatedUser) {
           res.status(200).json({updatedUser, msg: "User verification Accepted!" });

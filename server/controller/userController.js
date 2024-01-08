@@ -97,12 +97,12 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
   if(sponserData){
     const totalRaferal = sponserData.referalIncome + referalIncome;
     sponserData.referalIncome=totalRaferal;
-    sponserData.referalHistory={
+    sponserData.referalHistory.push({
       userID:userId,
       name:userData.username,
-      amountCredited:totalRaferal,
+      amountCredited:referalIncome,
       status:"Approved"
-    }
+    })
     const updatedSponser = await sponserData.save();
   if(updatedSponser){
   return totalRaferal;
@@ -164,7 +164,6 @@ export const addUser = async (req, res, next) => {
       email,
       phone,
       address,
-      addFundStatus,
       transactionPassword:hashedTxnPassword,
       // packageAmount,
       // packageChosen: packageData._id,
@@ -205,7 +204,6 @@ export const addUser = async (req, res, next) => {
           email: user.email,
           phone: user.phone,
           address: user.address,
-          FundStatus:addFundStatus,
           // packageAmount: user.packageAmount,
           // packageChosen: user.packageChosen,
           ownSponserId: user.ownSponserId,

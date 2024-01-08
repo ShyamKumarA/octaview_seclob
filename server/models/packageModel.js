@@ -15,6 +15,10 @@ const packageSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    minMembers: {
+      type: Number,
+      required: true,
+    },
     stage1: {
       type: Number,
       required: true,
