@@ -98,7 +98,7 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
     const totalRaferal = sponserData.referalIncome + referalIncome;
     sponserData.referalIncome=totalRaferal;
     sponserData.referalHistory.push({
-      userID:userId,
+      userID:userData.ownSponserId,
       name:userData.username,
       amountCredited:referalIncome,
       status:"Approved"
@@ -532,7 +532,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
     return baseString + randomDigits.toString();
   };
   
-  export const capitalWithdraw=async(req,res)=>{
+  export const capitalWithdraw=async(req,res,next)=>{
       try {
          const transactionID = generateTnxString();
          const userId=req.user._id;
@@ -572,7 +572,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
 
   //request for wallet withdrawal
 
-  export const walletWithdraw=async(req,res)=>{
+  export const walletWithdraw=async(req,res,next)=>{
     try {
       const transactionID = generateTnxString();
          const userId=req.user._id;

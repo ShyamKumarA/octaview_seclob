@@ -2,6 +2,7 @@ import express from "express"
 import { protectUser } from "../middleware/authMiddleware.js"
 import { acceptUser, addAdmin, addPackage, adminLogin, approveCapitalwithdrawal, approveFundAdd, approveWalletWithdrawal, getApprovedUsers, getReadyToApproveUsers, rejectCapitalwithdrawal, rejectUser, rejectWalletWithdrawal, userPackageApproval, userPackageReject, viewAddFundPending, viewAllUsers, viewWalletWithdrawPending, viewWithdrawPending } from "../controller/adminController.js"
 import { allUserCommissionSplit } from "../controller/commissionSplit.js"
+import { directIncomeReport } from "../controller/reportController.js"
 
 
 const adminRouter=express.Router()
