@@ -34,6 +34,7 @@ const transactionSchema = new mongoose.Schema(
       dayROI:Number,
       capitalAmount:Number,
       LevelAmountCredited:Number,
+      percentage:Number
     },
     {
       timestamps: true,
@@ -58,6 +59,18 @@ const transactionSchema = new mongoose.Schema(
       topUpAmount: Number,
       transactionCode:String,
       status: String
+    },
+    {
+      timestamps: true,
+    }
+  )
+  const withdrawSchema = new mongoose.Schema(
+    {
+      tnxID:String,
+      withdrawAmount: Number,
+      transactionCode:String,
+      walletUrl:String,
+      status:String
     },
     {
       timestamps: true,
@@ -134,10 +147,27 @@ const userSchema=new mongoose.Schema({
       type: Number,
         default: 0,
     },
+
     level1ROIHistory:[levelROISchema],
     level2ROIHistory:[levelROISchema],
     level3ROIHistory:[levelROISchema],
     dailyROIHistory:[dailyROISchema],
+    wallet:{
+      type:Number
+    },
+    withdrawAmount:{
+      type:Number
+    },
+    withdrawStatus:{
+      type:String,
+      enum:["pending","approved"]
+    },
+    transactionID:{
+      type:String
+    },
+    
+    capitalWithdrawHistory:[withdrawSchema],
+    walletWithdrawHistory:[withdrawSchema],
     referalIncome:{
       type:Number,
       default:0
@@ -150,6 +180,18 @@ const userSchema=new mongoose.Schema({
     ownSponserId: {
       type: String,
       required: true,
+    },
+    walletAmount:{
+      type: Number,
+      default:0
+    },
+    walletWithdrawAmount:{
+      type: Number,
+      default:0
+    },
+    walletWithdrawStatus:{
+      type: String,
+      enum: ["pending", "approved"],
     },
     packageAmount:{
       type: Number,
@@ -168,6 +210,9 @@ const userSchema=new mongoose.Schema({
       type:Number
     },
     transactionCode:{
+      type:String,
+    },
+    walletTransactionCode:{
       type:String,
     },
     referalStatus:{
@@ -192,11 +237,10 @@ const userSchema=new mongoose.Schema({
         ref:"User"}],
 },{timestamps:true});
 
-// Assuming the existing userSchema definition
 
 userSchema.methods.calculateLevel1ROI = async function () {
-  const packageData = await Package.findOne({ _id: this.packageChosen  });
-  const packageName=packageData.name;
+  try {
+    const packageData = await Package.findOne({ _id: this.packageChosen  });
   const minMembers=packageData.minMembers;
   const directMemberCount=this.childLevel1.length;
   const previousPackage=this.previousPackage;
@@ -218,6 +262,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level1ROI,
+          percentage:8
         });
   
         await this.save();
@@ -244,6 +289,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level1ROI,
+          percentage:packageData.stage1
         });
   
         await this.save();
@@ -272,6 +318,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level1ROI,
+          percentage:packageData.stage1
         });
   
         await this.save();
@@ -283,6 +330,13 @@ if(minMembers>directMemberCount){
     }
 
 }
+
+return this.level1ROI
+    
+  } catch (error) {
+    next(error)
+  }
+  
   
   
 };
@@ -290,7 +344,8 @@ if(minMembers>directMemberCount){
 
 
 userSchema.methods.calculateLevel2ROI = async function () {
-  const packageData = await Package.findOne({ _id: this.packageChosen  });
+  try {
+    const packageData = await Package.findOne({ _id: this.packageChosen  });
   const minMembers=packageData.minMembers;
   const directMemberCount=this.childLevel1.length;
   const previousPackage=this.previousPackage;
@@ -306,12 +361,13 @@ if(minMembers>directMemberCount){
         if(user.packageAmount!=0){
         const level2ROI = (user.dailyROI * 3) / 100;
   
-        this.level1ROIHistory.push({
+        this.level2ROIHistory.push({
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level2ROI,
+          percentage:3
         });
   
         await this.save();
@@ -338,6 +394,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level2ROI,
+          percentage:packageData.stage2
         });
   
         await this.save();
@@ -366,6 +423,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level2ROI,
+          percentage:packageData.stage2
         });
   
         await this.save();
@@ -377,13 +435,21 @@ if(minMembers>directMemberCount){
     }
 
 }
+return this.level2ROI
+    
+  } catch (error) {
+    next(error)
+    
+  }
+  
   
   
 };
 
 
 userSchema.methods.calculateLevel3ROI = async function () {
-  const packageData = await Package.findOne({ _id: this.packageChosen  });
+  try {
+    const packageData = await Package.findOne({ _id: this.packageChosen  });
   const minMembers=packageData.minMembers;
   const directMemberCount=this.childLevel1.length;
   const previousPackage=this.previousPackage;
@@ -405,6 +471,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level3ROI,
+          percentage:1
         });
   
         await this.save();
@@ -431,6 +498,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level3ROI,
+          percentage:packageData.stage3
         });
   
         await this.save();
@@ -459,6 +527,7 @@ if(minMembers>directMemberCount){
           dayROI: user.dailyROI,
           capitalAmount: user.packageAmount,
           LevelAmountCredited: level3ROI,
+          percentage:packageData.stage3
         });
   
         await this.save();
@@ -470,74 +539,16 @@ if(minMembers>directMemberCount){
     }
 
 }
+return this.level3ROI
+    
+  } catch (error) {
+    next(error)
+    
+  }
+  
   
   
 };
-
-
-
-
-
-
-// userSchema.methods.calculateLevel2ROI = async function () {
-
-//   const childLevel2Users = await User.find({ _id: { $in: this.childLevel2 } });
-
-//   if (childLevel2Users.length > 0) {
-//     let level2ROISum = 0;
-
-//     for (const user of childLevel2Users) {
-//       if(user.packageAmount!=0){
-//       const level2ROI = (user.dailyROI * 3) / 100;
-//       //console.log(level2ROI);
-//       this.level2ROIHistory.push({
-//         userID: user.ownSponserId,
-//         name: user.username,
-//         dayROI: user.dailyROI,
-//         capitalAmount: user.packageAmount,
-//         LevelAmountCredited: level2ROI,
-//       });
-
-//       await this.save();
-//       level2ROISum += level2ROI;
-//     }
-//   }
-
-//     this.level2ROI = level2ROISum;
-//     await this.save();
-//   }
-// };
-
-
-// userSchema.methods.calculateLevel3ROI = async function () {
-//   const childLevel3Users = await User.find({ _id: { $in: this.childLevel3 } });
-//   if(childLevel3Users.length>0){
-//   let level3ROISum = 0;
-
-//   for (const user of childLevel3Users) {
-//     if(user.packageAmount!=0){
-//       const level3ROI = (user.dailyROI * 1) / 100;
-
-//     this.level3ROIHistory.push({
-//       userID: user.ownSponserId,
-//       name: user.username,
-//       dayROI: user.dailyROI,
-//       capitalAmount: user.packageAmount,
-//       LevelAmountCredited: level3ROI,
-//     });
-
-//     await this.save();
-//     level3ROISum += level3ROI;
-
-//     }
-    
-//   }
-
-//   this.level3ROI = level3ROISum;
-//   await this.save();
-// }
-// };
-
 
 const User=mongoose.model("User",userSchema);
 

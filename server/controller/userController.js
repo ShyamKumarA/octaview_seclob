@@ -521,3 +521,90 @@ export const viewUserPackageDetails=async(req,res,next)=>{
       next(error)
     }
   }
+
+
+
+  //withdraw capital by user
+
+  export const generateTnxString = () => {
+    const baseString = "TNX";
+    const randomDigits = Math.floor(Math.random() * 999999999);
+    return baseString + randomDigits.toString();
+  };
+  
+  export const capitalWithdraw=async(req,res)=>{
+      try {
+         const transactionID = generateTnxString();
+         const userId=req.user._id;
+         const {amount,transactionPassword,walletUrl}=req.body;
+         const userData=await User.findById(userId);
+         if(userData){
+  
+          const validPassword = bcryptjs.compareSync(transactionPassword, userData.transactionPassword);
+          if (!validPassword) {
+            return next(errorHandler(401, "Wrong Transaction Password"));
+          } else {
+            userData.withdrawStatus ="pending";
+            userData.withdrawAmount=amount;
+            userData.transactionCode=walletUrl;
+            userData.transactionID=transactionID;
+    
+          const updatedUser = await userData.save();
+  
+          if (updatedUser) {
+            res.status(200).json({updatedUser, msg: "User Capital withdraw request send to admin" });
+          }
+            
+          }
+  
+        }else{
+        next(errorHandler("User not found, Please Login first"));
+  
+        }
+          
+          
+      } catch (error) {
+          next(error)
+      }
+  
+  }
+
+
+  //request for wallet withdrawal
+
+  export const walletWithdraw=async(req,res)=>{
+    try {
+      const transactionID = generateTnxString();
+         const userId=req.user._id;
+         const {amount,transactionPassword,walletUrl}=req.body;
+         const userData=await User.findById(userId);
+         if(userData){
+          const validPassword = bcryptjs.compareSync(transactionPassword, userData.transactionPassword);
+          if (!validPassword) {
+            return next(errorHandler(401, "Wrong Transaction Password"));
+          } else {
+            userData.walletWithdrawStatus ="pending";
+            userData.walletWithdrawAmount=amount;
+            userData.walletTransactionCode=walletUrl;
+            userData.transactionID=transactionID;
+    
+          const updatedUser = await userData.save();
+  
+          if (updatedUser) {
+            res.status(200).json({updatedUser, msg: "User wallet withdraw request send to admin" });
+          }
+            
+          }
+  
+        }else{
+        next(errorHandler("User not found, Please Login first"));
+  
+        }
+          
+          
+      } catch (error) {
+          next(error)
+      }
+
+    }
+  

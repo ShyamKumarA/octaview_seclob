@@ -268,7 +268,6 @@ export const approveFundAdd = async (req, res, next) => {
       if(packageAmount) previousPackage = findPackage(packageAmount);
       const amountToAdd=userData.topUpAmount;
       const newPackageAmount=packageAmount+amountToAdd;
-      console.log(previousPackage);
       const transactionCode=userData.transactionCode;
       const packageChosen = findPackage(newPackageAmount);
       const packageData = await Package.findOne({ name: packageChosen });
@@ -277,7 +276,7 @@ export const approveFundAdd = async (req, res, next) => {
         userData.packageAmount=newPackageAmount;
         userData.previousPackage=previousPackage;
         userData.packageChosen=packageData._id;
-        userData.transactionCode=transactionCode
+        userData.transactionCode=""
         userData.addFundHistory.push({
           topUpAmount:amountToAdd,
           status:"approved",
@@ -285,7 +284,6 @@ export const approveFundAdd = async (req, res, next) => {
           transactionCode:transactionCode
         })
         userData.topUpAmount=0;
-        userData.transactionCode='';
         const updatedUser = await userData.save();
         if (updatedUser) {
           res.status(200).json({updatedUser, msg: "User verification Accepted!" });
@@ -301,7 +299,229 @@ export const approveFundAdd = async (req, res, next) => {
     next(error);
   }
 };
+
+//admin can approve Capital fund withdrawal
+
+export const approveCapitalwithdrawal = async (req, res, next) => {
+  try {
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      let previousPackage;
+      const userData = await User.findById(id);
+      const packageAmount=userData.packageAmount;
+      previousPackage = findPackage(packageAmount);
+      const withdrawAmount=userData.withdrawAmount;
+      const newPackageAmount=packageAmount-withdrawAmount;
+      const transactionCode=userData.transactionCode;
+      const tnxID=userData.transactionID;
+      const packageChosen = findPackage(newPackageAmount);
+      const packageData = await Package.findOne({ name: packageChosen });
+      if (userData) {
+        userData.withdrawStatus = "approved";
+        userData.packageAmount=newPackageAmount;
+        userData.previousPackage=previousPackage;
+        userData.packageChosen=packageData._id;
+        userData.withdrawAmount=0;
+        userData.transactionCode="";
+        userData.transactionID="";
+        userData.capitalWithdrawHistory.push({
+          tnxID:tnxID,
+          withdrawAmount: withdrawAmount,
+          walletUrl:transactionCode,
+          status:"Approved"
+        })
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Withdraw request Accepted!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+
+
+//admin can approve Capital fund withdrawal
+
+export const approveWalletWithdrawal = async (req, res, next) => {
+  try {
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      const userData = await User.findById(id);
+      const walletAmount=userData.walletAmount;
+      const withdrawAmount=userData.walletWithdrawAmount;
+      const newWalletAmount=walletAmount-withdrawAmount;
+      const transactionCode=userData.walletTransactionCode;
+      const tnxID=userData.transactionID;
+      if (userData) {
+        userData.walletWithdrawStatus = "approved";
+        userData.walletAmount=newWalletAmount;
+        userData.walletWithdrawAmount=0;
+        userData.walletTransactionCode="";
+        userData.transactionID="";
+        userData.walletWithdrawHistory.push({
+          tnxID:tnxID,
+          withdrawAmount: withdrawAmount,
+          walletUrl:transactionCode,
+          status:"Approved"
+        })
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Wallet Withdraw request Accepted!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+//admin reject user wallet withdrawal request
   
+export const rejectWalletWithdrawal = async (req, res, next) => {
+  try {
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      const userData = await User.findById(id);
+      const withdrawAmount=userData.walletWithdrawAmount;
+      const transactionCode=userData.walletTransactionCode;
+      const tnxID=userData.transactionID;
+      if (userData) {
+        userData.walletWithdrawStatus = ""; 
+        userData.walletWithdrawAmount=0;
+        userData.walletTransactionCode="";
+        userData.transactionID="";
+        userData.capitalWithdrawHistory.push({
+          tnxID:tnxID,
+          withdrawAmount: withdrawAmount,
+          walletUrl:transactionCode,
+          status:"Rejected"
+        })
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Wallet Withdraw request Rejected!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+
+//view pending capital withdraw requestes
+
+export const viewWithdrawPending = async (req, res, next) => {
+  const userId = req.user._id;
+  const adminData = await User.findById(userId);
+  try {
+    if (adminData.isSuperAdmin) {
+      const userData = await User.find({
+        withdrawStatus: { $eq: "pending" },
+      }).select("username email phone withdrawStatus withdrawAmount");
+      res.status(200).json({
+        userData,
+        sts: "01",
+        msg: "get withdraw pending users Success",
+      });
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+//view pending wallet withdraw requestes
+
+export const viewWalletWithdrawPending = async (req, res, next) => {
+  const userId = req.user._id;
+  const adminData = await User.findById(userId);
+  try {
+    if (adminData.isSuperAdmin) {
+      const userData = await User.find({
+        walletWithdrawStatus: { $eq: "pending" },
+      }).select("username email phone walletWithdrawStatus walletWithdrawAmount");
+      res.status(200).json({
+        userData,
+        sts: "01",
+        msg: "get wallet withdraw pending users Success",
+      });
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+//admin reject user withdrawal request
+  
+export const rejectCapitalwithdrawal = async (req, res, next) => {
+  try {
+    const adminId = req.user._id;
+    const { id } = req.params;
+
+    const adminData = await User.findById(adminId);
+    if (adminData.isSuperAdmin) {
+      const userData = await User.findById(id);
+      const withdrawAmount=userData.withdrawAmount;
+      const transactionCode=userData.transactionCode;
+      const tnxID=userData.transactionID;
+      if (userData) {
+        userData.withdrawStatus = "";
+        userData.withdrawAmount=0;
+        userData.transactionCode="";
+        userData.transactionID="";
+        userData.capitalWithdrawHistory.push({
+          tnxID:tnxID,
+          withdrawAmount: withdrawAmount,
+          walletUrl:transactionCode,
+          status:"Rejected"
+        })
+        const updatedUser = await userData.save();
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Withdraw request Rejected!" });
+        }
+      } else {
+        next(errorHandler("User not Found"));
+      }
+    } else {
+      return next(errorHandler(401, "Admin Login Failed"));
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
 
 //admin approve initial package
 
@@ -354,6 +574,11 @@ export const userPackageApproval=async(req,res,next)=>{
   }
 
 }
+
+
+
+
+
 
 //admin Reject initial package
 

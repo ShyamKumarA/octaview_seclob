@@ -31,9 +31,13 @@ export const allUserCommissionSplit=async(req,res,next)=>{
 const allUsers = await User.find({ isSuperAdmin: { $ne: true }, packageAmount: { $ne: 0 } });
 
 allUsers.forEach(async (user) => {
-  await user.calculateLevel1ROI();
-  await user.calculateLevel2ROI();
-  await user.calculateLevel3ROI();
+ const level1ROI= await user.calculateLevel1ROI();
+  const level2ROI=await user.calculateLevel2ROI();
+  const level3ROI=await user.calculateLevel3ROI();
+
+  user.walletAmount=user.walletAmount+(level1ROI+level2ROI+level3ROI)+user.dailyROI
+  await user.save();
+
 });
 
         
