@@ -78,10 +78,7 @@ const transactionSchema = new mongoose.Schema(
   )
   const ReferalAmountSchema = new mongoose.Schema(
     {
-      userID:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-      },
+      userID:String,
       name: String,
       amountCredited: Number,
       transactionCode:String,
@@ -242,6 +239,11 @@ userSchema.methods.calculateLevel1ROI = async function () {
   try {
     const packageData = await Package.findOne({ _id: this.packageChosen  });
   const minMembers=packageData.minMembers;
+  
+const approvedChildLevel1Count = this.childLevel1.filter(child => child.userStatus === "approved").length;
+
+console.log(`Number of approved in childLevel1:`, approvedChildLevel1Count);
+
   const directMemberCount=this.childLevel1.length;
   const previousPackage=this.previousPackage;
 

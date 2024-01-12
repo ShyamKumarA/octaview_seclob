@@ -179,7 +179,7 @@ export const acceptUser = async (req, res, next) => {
     const adminData = await User.findById(adminId);
     if (adminData.isSuperAdmin) {
       const userData = await User.findById(id);
-      console.log(userData);
+      //console.log(userData);
       // const sponserId=userData.sponser;
       if (userData) {
         userData.userStatus = "approved";
@@ -533,9 +533,22 @@ export const userPackageApproval=async(req,res,next)=>{
     const adminData = await User.findById(adminId);
     if (adminData.isSuperAdmin) {
       const userData = await User.findById(id);
+      const sponserId1=userData.sponser;
+      const sponserUser1 = await User.findById(sponserId1);
+
+    let sponserUser2, sponserUser3;
+
+    const sponserId2 = sponserUser1.sponser||null;
+    if (sponserId2) { 
+      sponserUser2 = await User.findById(sponserId2);
+    }
+    if (sponserUser2) {
+    const sponserId3 = sponserUser2.sponser||null;
+      sponserUser3 = await User.findById(sponserId3);
+    }
+
+
       const packageAmount=userData.packageAmount;
-      
-      const sponserId=userData.sponser;
       const amountToAdd=userData.topUpAmount;
       const transactionCode=userData.transactionCode;
       const newPackageAmount=packageAmount+amountToAdd
@@ -557,7 +570,19 @@ export const userPackageApproval=async(req,res,next)=>{
         userData.transactionCode='';
         const updatedUser = await userData.save();
         if (updatedUser) {
-          const referalIncome=generateReferalIncome(id,sponserId,updatedUser.packageAmount)
+          if(sponserUser3){
+            sponserUser3.childLevel3.push(updatedUser._id);
+            await sponserUser3.save();
+          }
+          if(sponserUser2){
+            sponserUser2.childLevel2.push(updatedUser._id);
+            await sponserUser2.save();
+          }
+          if (sponserUser1) {
+            sponserUser1.childLevel1.push(updatedUser._id);
+             await sponserUser1.save();
+          }
+          const referalIncome=generateReferalIncome(id,sponserId1,updatedUser.packageAmount)
           res.status(200).json({updatedUser,referalIncome, msg: "New package added successfull! Referal amount approved!" });
         }
       } else {

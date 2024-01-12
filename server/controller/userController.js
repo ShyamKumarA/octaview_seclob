@@ -91,7 +91,8 @@ export const generateRandomString = () => {
 //generate referal income for all
 
 export const generateReferalIncome = async (userId,id, capitalAmount) => {
-  const referalIncome = capitalAmount * 0.05;
+  try {
+    const referalIncome = capitalAmount * 0.05;
   const sponserData = await User.findById(id);
   const userData=await User.findById(userId);
   if(sponserData){
@@ -112,6 +113,10 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
   }else{
     next(errorHandler("Sponser not found"))
   }
+  } catch (error) {
+    console.log(error);
+  }
+  
   
 };
 
@@ -120,24 +125,7 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
 export const addUser = async (req, res, next) => {
   try {
     const sponser = req.user._id;
-    console.log(sponser);
     const userStatus = "pending";
-
-    const sponserUser1 = await User.findById(sponser);
-    console.log(sponserUser1);
-
-    let sponserUser2, sponserUser3;
-
-    const sponserId2 = sponserUser1.sponser||null;
-    if (sponserId2) { 
-      sponserUser2 = await User.findById(sponserId2);
-      console.log(sponserUser2);
-    }
-    if (sponserUser2) {
-    const sponserId3 = sponserUser2.sponser||null;
-      sponserUser3 = await User.findById(sponserId3);
-      console.log(sponserUser3);
-    }
 
     const ownSponserId = generateRandomString();
 
@@ -172,20 +160,7 @@ export const addUser = async (req, res, next) => {
       earning,
       userStatus,
     });
-    if (user) {
-      if(sponserUser3){
-        sponserUser3.childLevel3.push(user._id);
-        await sponserUser3.save();
-      }
-      if(sponserUser2){
-        sponserUser2.childLevel2.push(user._id);
-        await sponserUser2.save();
-      }
-      if (sponserUser1) {
-        sponserUser1.childLevel1.push(user._id);
-        const updatedUser = await sponserUser1.save();     
-       
-        if (updatedUser) {
+    if (user) {    
           await sendMail(
             user.email,
             // packageChosen,
@@ -195,7 +170,7 @@ export const addUser = async (req, res, next) => {
             transactionPassword,
             password
           );
-        }
+        
 
         res.json({
           _id: user._id,
@@ -214,11 +189,7 @@ export const addUser = async (req, res, next) => {
           isSuperAdmin: user.isSuperAdmin,
           userStatus: user.userStatus,
         });
-      } else {
-        return next(
-          errorHandler(400, "Some error occured. Make sure you are logged in!")
-        );
-      }
+      
     } else {
       return next(errorHandler(400, "Registration failed. Please try again!"));
     }
