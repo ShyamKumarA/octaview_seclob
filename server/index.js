@@ -9,7 +9,7 @@ import adminRouter from './router/adminRoute.js';
 dotenv.config();
 dbConnect();
 const app=express()
-const port = process.env.PORT || 6001;
+const port = process.env.PORT || 4001;
 
 
 app.use(express.json());

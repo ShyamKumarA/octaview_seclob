@@ -12,7 +12,7 @@ const sendMail=(mailId, name, sponserid,transactionPassword, password) => {
       requireTLS: true,
       auth: {
         user: "shyamkumarbeypore@gmail.com",
-        pass: process.env.PASSWORD,
+        pass: jurnygdvijzxbpdf,
       },
   })
   const mailOptions = {
