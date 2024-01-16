@@ -47,16 +47,22 @@ export const userLogin = async (req, res, next) => {
     const token = jwt.sign({ userId: validUser._id }, process.env.JWT_SECRET, {
       expiresIn: "365d",
     });
+    //const {password:hashedPassword,...rest}=validUser._doc
+    res.cookie('access_token',token,{httpOnly:true}).status(208).json(
+      {
+          id: validUser._id,
+          firstName: validUser.username,
+          email: validUser.email,
+          token_type: "Bearer",
+          access_token: token,
+          sts: "01",
+          msg: "Login Success",
+      }
+    )
 
-    res.status(200).json({
-      id: validUser._id,
-      firstName: validUser.username,
-      email: validUser.email,
-      token_type: "Bearer",
-      access_token: token,
-      sts: "01",
-      msg: "Login Success",
-    });
+
+    // res.status(200).json(
+    // });
   } catch (error) {
     next(error);
   }
@@ -469,7 +475,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
         if (!validPassword) {
           return next(errorHandler(401, "Wrong Transaction Password"));
         } else {
-          userData.addFundStatus ="pending";
+          userData.addPackageStatus ="pending";
           userData.topUpAmount=amount;
           userData.transactionCode=transactionCode;
           

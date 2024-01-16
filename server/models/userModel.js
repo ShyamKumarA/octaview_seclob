@@ -220,6 +220,10 @@ const userSchema=new mongoose.Schema({
       type: String,
       enum: ["pending", "approved"],
     },
+    addPackageStatus:{
+      type: String,
+      enum: ["pending", "approved"],
+    },
     userStatus: {
         type: String,
         enum: ["pending", "readyToApprove", "approved"],

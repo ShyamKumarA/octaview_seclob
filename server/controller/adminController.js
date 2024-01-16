@@ -253,6 +253,29 @@ export const rejectUser = async (req, res, next) => {
     }
   };
 
+
+    //view add Package fund pending by admin
+
+    export const viewAddPackageFundPending = async (req, res, next) => {
+      const userId = req.user._id;
+      const adminData = await User.findById(userId);
+      try {
+        if (adminData.isSuperAdmin) {
+          const userData = await User.find({
+            addPackageStatus: { $eq: "pending" },
+          }).select("username email phone userStatus");
+          res.status(200).json({
+            userData,
+            sts: "01",
+            msg: "get Package Fund add pending users Success",
+          });
+        } else {
+          return next(errorHandler(401, "Admin Login Failed"));
+        }
+      } catch (error) {
+        next(error);
+      }
+    };
   //admin can Approve users fund adding 
 
 export const approveFundAdd = async (req, res, next) => {
@@ -553,9 +576,10 @@ export const userPackageApproval=async(req,res,next)=>{
       const transactionCode=userData.transactionCode;
       const newPackageAmount=packageAmount+amountToAdd
       const packageChosen = findPackage(newPackageAmount);
+      console.log(packageChosen);
       const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
-        userData.addFundStatus = "approved";
+        userData.addPackageStatus = "approved";
         userData.referalStatus="approved";
         userData.packageAmount=newPackageAmount;
         userData.packageChosen=packageData._id; 
@@ -623,7 +647,7 @@ export const userPackageReject=async(req,res,next)=>{
       // const packageChosen = findPackage(newPackageAmount);
       // const packageData = await Package.findOne({ name: packageChosen });
       if (userData) {
-        userData.addFundStatus = "pending";
+        userData.addPackageStatus = "";
         userData.referalStatus="";
         // userData.packageAmount=newPackageAmount;
         // userData.packageChosen=packageData._id;
