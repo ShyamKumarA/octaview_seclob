@@ -44,7 +44,7 @@ export const userLogin = async (req, res, next) => {
     if (!validPassword) {
       return next(errorHandler(401, "Wrong credentials"));
     }
-    const token = jwt.sign({ userId: validUser._id }, Shyam, {
+    const token = jwt.sign({ userId: validUser._id }, "Shyam", {
       expiresIn: "365d",
     });
     //const {password:hashedPassword,...rest}=validUser._doc
@@ -258,12 +258,32 @@ export const verifyUser = async (req, res, next) => {
 export const viewUserProfile = async (req, res, next) => {
   const userId = req.user._id;
   try {
-    const userData = await User.findById(userId).select(
-      "username email phone userStatus packageAmount"
-    );
+    const userData = await User.findById(userId).populate("packageChosen");
+    const packageData=userData.packageChosen;
+    const packageName=packageData.name;
+    const countFirstChild=userData.childLevel1.length;
+    const countSecondChild=userData.childLevel1.length;
+    const countThreeChild=userData.childLevel1.length;
+
+
+    // .select(
+    //   "username ownSponserId email phone userStatus packageAmount"
+    // );
     if (userData) {
       res.status(200).json({
-        userData,
+        _id: userData._id,
+        userStatus: userData.userStatus,
+        ownSponserId: userData.ownSponserId,
+        name: userData.username,
+        email: userData.email,
+        phone: userData.phone,
+        address: userData.address,
+        // packageAmount: user.packageAmount,
+        // packageChosen: user.packageChosen,
+        capitalAmount:userData.capitalAmount,
+        myDownline:userData.countFirstChild,
+        directIncome:userData.referalIncome,
+        totalIncome:userData.walletAmount,
         sts: "01",
         msg: "get user profile Success",
       });
