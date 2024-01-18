@@ -135,8 +135,7 @@ export const addUser = async (req, res, next) => {
 
     const ownSponserId = generateRandomString();
 
-    const { username, email, phone, address,transactionPassword, password } =
-      req.body;
+    const { username, email, phone, address,transactionPassword, password } = req.body;
     // const packageChosen = findPackage(packageAmount);
     // const packageData = await Package.findOne({ name: packageChosen });
     //console.log(packageData);
@@ -259,29 +258,38 @@ export const viewUserProfile = async (req, res, next) => {
   const userId = req.user._id;
   try {
     const userData = await User.findById(userId).populate("packageChosen");
+    let packageName;
     const packageData=userData.packageChosen;
-    const packageName=packageData.name;
+    if(packageData){
+    packageName=packageData.name;
+    }else{
+      packageName=null;
+    }
+
     const countFirstChild=userData.childLevel1.length;
     const countSecondChild=userData.childLevel1.length;
     const countThreeChild=userData.childLevel1.length;
-
+    const totalLevelRoi=userData.level1ROI+userData.level2ROI+userData.level3ROI;
 
     // .select(
     //   "username ownSponserId email phone userStatus packageAmount"
     // );
     if (userData) {
       res.status(200).json({
-        _id: userData._id,
+        id: userData._id,
         userStatus: userData.userStatus,
         ownSponserId: userData.ownSponserId,
+        packageName:packageName,
         name: userData.username,
         email: userData.email,
         phone: userData.phone,
         address: userData.address,
+        dailyBonus:userData.dailyROI,
+        levelRoi:totalLevelRoi,
         // packageAmount: user.packageAmount,
         // packageChosen: user.packageChosen,
-        capitalAmount:userData.capitalAmount,
-        myDownline:userData.countFirstChild,
+        capitalAmount:userData.packageAmount,
+        myDownline:countFirstChild,
         directIncome:userData.referalIncome,
         totalIncome:userData.walletAmount,
         sts: "01",
@@ -322,19 +330,22 @@ export const editProfile = async (req, res, next) => {
   }
 };
 
-//view child nodes(tree)
+//view child 
 
 export const viewChilds = async (req, res, next) => {
   const userId = req.query.id || req.user._id;
   try {
     const userChilds = await User.findById(userId).populate({
-      path: "myChilds",
-      select: "username email userStatus packageAmount",
+      path: "childLevel1",
+      select: "username ownSponserId phone address email userStatus packageAmount",
     });
+    
+    const sponserId=userChilds.ownSponserId;
+
 
     if (userChilds) {
-      const childs = userChilds.myChilds;
-      res.status(200).json({ childs, sts: "01", msg: "Success" });
+      const childs = userChilds.childLevel1;
+      res.status(200).json({ childs,sponserId, sts: "01", msg: "Success" });
     } else {
       next(errorHandler("No child Found"));
     }
@@ -342,6 +353,7 @@ export const viewChilds = async (req, res, next) => {
     next(error);
   }
 };
+
 
 
 //view all packages
