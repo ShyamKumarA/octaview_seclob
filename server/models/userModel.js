@@ -29,6 +29,7 @@ const transactionSchema = new mongoose.Schema(
 
   const levelROISchema=new mongoose.Schema(
     {
+      reportName:String,
       userID:String,
       name:String,
       dayROI:Number,
@@ -43,6 +44,7 @@ const transactionSchema = new mongoose.Schema(
 
   const dailyROISchema = new mongoose.Schema(
     {
+      reportName:String,
       name: String,
       capitalAmount:Number,
       percentage:Number,
@@ -66,6 +68,7 @@ const transactionSchema = new mongoose.Schema(
   )
   const withdrawSchema = new mongoose.Schema(
     {
+      reportName:String,
       tnxID:String,
       withdrawAmount: Number,
       transactionCode:String,
@@ -78,6 +81,7 @@ const transactionSchema = new mongoose.Schema(
   )
   const ReferalAmountSchema = new mongoose.Schema(
     {
+      reportName:String,
       userID:String,
       name: String,
       amountCredited: Number,
@@ -194,6 +198,9 @@ const userSchema=new mongoose.Schema({
       type: Number,
       default:0
     },
+    packageName:{
+      type:String
+    },
     previousPackage:{
       type: String,
       default:"Bronza"
@@ -246,7 +253,7 @@ userSchema.methods.calculateLevel1ROI = async function () {
   
 const approvedChildLevel1Count = this.childLevel1.filter(child => child.userStatus === "approved").length;
 
-console.log(`Number of approved in childLevel1:`, approvedChildLevel1Count);
+
 
   const directMemberCount=this.childLevel1.length;
   const previousPackage=this.previousPackage;
@@ -263,6 +270,7 @@ if(minMembers>directMemberCount){
         const level1ROI = (user.dailyROI * 8) / 100;
   
         this.level1ROIHistory.push({
+          reportName:"level1ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -290,6 +298,7 @@ if(minMembers>directMemberCount){
         const level1ROI = (user.dailyROI * packageData.stage1) / 100;
   
         this.level1ROIHistory.push({
+          reportName:"level1ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -319,6 +328,7 @@ if(minMembers>directMemberCount){
         const level1ROI = (user.dailyROI * packageData.stage1) / 100;
   
         this.level1ROIHistory.push({
+          reportName:"level1ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -368,6 +378,7 @@ if(minMembers>directMemberCount){
         const level2ROI = (user.dailyROI * 3) / 100;
   
         this.level2ROIHistory.push({
+          reportName:"level2ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -395,6 +406,7 @@ if(minMembers>directMemberCount){
         const level2ROI = (user.dailyROI * packageData.stage2) / 100;
   
         this.level2ROIHistory.push({
+          reportName:"level2ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -424,6 +436,7 @@ if(minMembers>directMemberCount){
         const level2ROI = (user.dailyROI * packageData.stage2) / 100;
   
         this.level2ROIHistory.push({
+          reportName:"level2ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -472,6 +485,7 @@ if(minMembers>directMemberCount){
         const level3ROI = (user.dailyROI * 1) / 100;
   
         this.level3ROIHistory.push({
+          reportName:"level3ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -499,6 +513,7 @@ if(minMembers>directMemberCount){
         const level3ROI = (user.dailyROI * packageData.stage3) / 100;
   
         this.level3ROIHistory.push({
+          reportName:"level3ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -528,6 +543,7 @@ if(minMembers>directMemberCount){
         const level3ROI = (user.dailyROI * packageData.stage3) / 100;
   
         this.level3ROIHistory.push({
+          reportName:"level3ROIReport",
           userID: user.ownSponserId,
           name: user.username,
           dayROI: user.dailyROI,
@@ -555,6 +571,8 @@ return this.level3ROI
   
   
 };
+
+
 
 const User=mongoose.model("User",userSchema);
 

@@ -16,6 +16,7 @@ export const allUserCommissionSplit=async(req,res,next)=>{
                 const dailyROI=(capitalAmount*percentage)/100;
                 user.dailyROI=dailyROI;
                 user.dailyROIHistory.push({
+                    reportName:"ROIIncome",
                     name:user.username ,
                     capitalAmount:user.capitalAmount,
                     percentage:percentage,

@@ -96,7 +96,7 @@ export const generateRandomString = () => {
 
 //generate referal income for all
 
-export const generateReferalIncome = async (userId,id, capitalAmount) => {
+export const generateReferalIncome = async (userId,id, capitalAmount,transactionCode) => {
   try {
     const referalIncome = capitalAmount * 0.05;
   const sponserData = await User.findById(id);
@@ -105,9 +105,11 @@ export const generateReferalIncome = async (userId,id, capitalAmount) => {
     const totalRaferal = sponserData.referalIncome + referalIncome;
     sponserData.referalIncome=totalRaferal;
     sponserData.referalHistory.push({
+      reportName:"DirectIncome",
       userID:userData.ownSponserId,
       name:userData.username,
       amountCredited:referalIncome,
+      transactionCode:transactionCode,
       status:"Approved"
     })
     const updatedSponser = await sponserData.save();
@@ -218,16 +220,16 @@ export const verifyUser = async (req, res, next) => {
 
       if (user) {
         const aadhaarImage = req.files["aadhaar"][0];
-        const pancardImage = req.files["pancard"][0];
+        // const pancardImage = req.files["pancard"][0];
 
-        if (!aadhaarImage || !pancardImage) {
-          return next(
-            errorHandler(400, "Both Aadhaar and Pancard images are required")
-          );
-        }
+        // if (!aadhaarImage || !pancardImage) {
+        //   return next(
+        //     errorHandler(400, "Both Aadhaar and Pancard images are required")
+        //   );
+        // }
 
         user.aadhaar = aadhaarImage.filename;
-        user.pancard = pancardImage.filename;
+        // user.pancard = pancardImage.filename;
         user.userStatus = "readyToApprove";
 
         const updatedUser = await user.save();
@@ -330,21 +332,72 @@ export const editProfile = async (req, res, next) => {
   }
 };
 
+//view all transactions
+
+export const viewAllTransactions = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { reportName } = req.body;
+    const userData = await User.findById(userId).populate([
+      "referalHistory",
+      "level1ROIHistory",
+      "level2ROIHistory",
+      "level3ROIHistory",
+      "dailyROIHistory",
+      "walletWithdrawHistory",
+      "capitalWithdrawHistory"
+    ]);
+
+    if (userData) {
+      const referalHistory = userData.referalHistory || [];
+      const level1ROIHistory = userData.level1ROIHistory || [];
+      const level2ROIHistory = userData.level2ROIHistory || [];
+      const level3ROIHistory = userData.level3ROIHistory || [];
+      const dailyROIHistory = userData.dailyROIHistory || [];
+      const walletWithdrawHistory = userData.walletWithdrawHistory || [];
+      const capitalWithdrawHistory = userData.capitalWithdrawHistory || [];
+
+      const allTransactions = [
+        ...referalHistory,
+        ...level1ROIHistory,
+        ...level2ROIHistory,
+        ...level3ROIHistory,
+        ...dailyROIHistory,
+        ...walletWithdrawHistory,
+        ...capitalWithdrawHistory
+      ];
+
+      // Filter objects based on reportName
+      const filteredTransactions = allTransactions.filter(transaction => transaction.reportName === reportName);
+
+      res.status(200).json({ allTransactions: filteredTransactions, sts: "01", msg: "Successfully Updated" });
+    } else {
+      next(errorHandler("User not found, Please Login first"));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
 //view child 
 
 export const viewChilds = async (req, res, next) => {
   const userId = req.query.id || req.user._id;
-  try {
+  try { 
+
     const userChilds = await User.findById(userId).populate({
       path: "childLevel1",
-      select: "username ownSponserId phone address email userStatus packageAmount",
+      select: "username ownSponserId  phone address email userStatus packageAmount packageName",
     });
     
     const sponserId=userChilds.ownSponserId;
+    const childs = userChilds.childLevel1;
 
-
-    if (userChilds) {
-      const childs = userChilds.childLevel1;
+    if (childs) {
+      
       res.status(200).json({ childs,sponserId, sts: "01", msg: "Success" });
     } else {
       next(errorHandler("No child Found"));
@@ -404,12 +457,13 @@ export const viewUserPackageDetails=async(req,res,next)=>{
 
    export const AddFund=async(req,res,next)=>{
     const userId=req.user._id;
-    const {amount}=req.body;
+    const {amount,transactionCode}=req.body;
     try {
       const user=await User.findById(userId);
       if(user){
         user.addFundStatus = "pending";
         user.topUpAmount=amount;
+        user.transactionCode=transactionCode;
 
             
         const updatedUser = await user.save();
@@ -498,15 +552,12 @@ export const viewUserPackageDetails=async(req,res,next)=>{
   export const addPackageByUser=async(req,res,next)=>{
     const userId=req.user._id;
     try {
-    const {amount,transactionPassword,transactionCode}=req.body;
-    console.log(transactionPassword);
+    const {amount,transactionCode}=req.body;
+   
       const userData=await User.findById(userId)
       console.log(userData);
       if(userData){
-        const validPassword = bcryptjs.compareSync(transactionPassword, userData.transactionPassword);
-        if (!validPassword) {
-          return next(errorHandler(401, "Wrong Transaction Password"));
-        } else {
+        
           userData.addPackageStatus ="pending";
           userData.topUpAmount=amount;
           userData.transactionCode=transactionCode;
@@ -519,7 +570,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
           res.status(200).json({updatedUser, msg: "User Fund top up request send to admin" });
         }
           
-        }
+        
 
       }else{
       next(errorHandler("User not found, Please Login first"));

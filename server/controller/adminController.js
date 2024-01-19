@@ -298,9 +298,11 @@ export const approveFundAdd = async (req, res, next) => {
         userData.addFundStatus = "approved";
         userData.packageAmount=newPackageAmount;
         userData.previousPackage=previousPackage;
+        userData.packageName=packageChosen;
         userData.packageChosen=packageData._id;
         userData.transactionCode=""
         userData.addFundHistory.push({
+          reportName:"addFund",
           topUpAmount:amountToAdd,
           status:"approved",
           name:userData.username,
@@ -346,11 +348,13 @@ export const approveCapitalwithdrawal = async (req, res, next) => {
         userData.withdrawStatus = "approved";
         userData.packageAmount=newPackageAmount;
         userData.previousPackage=previousPackage;
+        userData.packageName=packageChosen;
         userData.packageChosen=packageData._id;
         userData.withdrawAmount=0;
         userData.transactionCode="";
         userData.transactionID="";
         userData.capitalWithdrawHistory.push({
+          reportName:"capitalWithdraw",
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,
@@ -396,6 +400,7 @@ export const approveWalletWithdrawal = async (req, res, next) => {
         userData.walletTransactionCode="";
         userData.transactionID="";
         userData.walletWithdrawHistory.push({
+          reportName:"walletreport",
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,
@@ -436,6 +441,7 @@ export const rejectWalletWithdrawal = async (req, res, next) => {
         userData.walletTransactionCode="";
         userData.transactionID="";
         userData.capitalWithdrawHistory.push({
+          reportName:"walletwithdrawReject",
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,
@@ -525,6 +531,7 @@ export const rejectCapitalwithdrawal = async (req, res, next) => {
         userData.transactionCode="";
         userData.transactionID="";
         userData.capitalWithdrawHistory.push({
+          reportName:"rejectCapitalwithdraw",
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,
@@ -581,6 +588,7 @@ export const userPackageApproval=async(req,res,next)=>{
       if (userData) {
         userData.addPackageStatus = "approved";
         userData.referalStatus="approved";
+        userData.packageName=packageChosen;
         userData.packageAmount=newPackageAmount;
         userData.packageChosen=packageData._id; 
         userData.transactionCode=transactionCode
@@ -606,7 +614,7 @@ export const userPackageApproval=async(req,res,next)=>{
             sponserUser1.childLevel1.push(updatedUser._id);
              await sponserUser1.save();
           }
-          const referalIncome=generateReferalIncome(id,sponserId1,updatedUser.packageAmount)
+          const referalIncome=generateReferalIncome(id,sponserId1,updatedUser.packageAmount,transactionCode)
           res.status(200).json({updatedUser,referalIncome, msg: "New package added successfull! Referal amount approved!" });
         }
       } else {
