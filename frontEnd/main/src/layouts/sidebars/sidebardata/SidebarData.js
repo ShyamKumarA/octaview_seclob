@@ -62,8 +62,8 @@ const SidebarData = [
     ],
   },
   {
-    title: 'Chat',
-    href: '/apps/chat',
+    title: 'Accept Packages',
+    href: '/accept-packages',
     icon: <Icon.MessageCircle />,
     id: 2.2,
     collapisble: false,

@@ -69,6 +69,8 @@ const transactionSchema = new mongoose.Schema(
   const withdrawSchema = new mongoose.Schema(
     {
       reportName:String,
+      ownID:String,
+      packageName:String,
       tnxID:String,
       withdrawAmount: Number,
       transactionCode:String,

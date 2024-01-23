@@ -36,7 +36,7 @@ allUsers.forEach(async (user) => {
   const level2ROI=await user.calculateLevel2ROI();
   const level3ROI=await user.calculateLevel3ROI();
 
-  user.walletAmount=user.walletAmount+(level1ROI+level2ROI+level3ROI)+user.dailyROI
+  user.walletAmount=user.walletAmount+(level1ROI+level2ROI+level3ROI)+user.dailyROI+user.referalIncome
   await user.save();
 
 });

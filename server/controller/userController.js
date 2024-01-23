@@ -48,7 +48,7 @@ export const userLogin = async (req, res, next) => {
       expiresIn: "365d",
     });
     //const {password:hashedPassword,...rest}=validUser._doc
-    res.cookie('access_token',token,{httpOnly:true}).status(208).json(
+    res.cookie('access_token',token,{httpOnly:true}).status(200).json(
       {
           id: validUser._id,
           firstName: validUser.username,
@@ -151,8 +151,6 @@ export const addUser = async (req, res, next) => {
       return next(errorHandler(401, "User Already Exist"));
     }
 
-    const earning = 0;
-
     const user = await User.create({
       sponser,
       username,
@@ -160,11 +158,8 @@ export const addUser = async (req, res, next) => {
       phone,
       address,
       transactionPassword:hashedTxnPassword,
-      // packageAmount,
-      // packageChosen: packageData._id,
       password: hashedPassword,
       ownSponserId,
-      earning,
       userStatus,
     });
     if (user) {    
@@ -186,14 +181,9 @@ export const addUser = async (req, res, next) => {
           email: user.email,
           phone: user.phone,
           address: user.address,
-          // packageAmount: user.packageAmount,
-          // packageChosen: user.packageChosen,
+         
           ownSponserId: user.ownSponserId,
           earning: user.earning,
-          myChild1: user.childLevel1,
-          myChild2: user.childLevel2,
-          myChild3: user.childLevel3,
-          isSuperAdmin: user.isSuperAdmin,
           userStatus: user.userStatus,
         });
       
@@ -205,6 +195,100 @@ export const addUser = async (req, res, next) => {
     console.log(error);
   }
 };
+// add user by Referal link
+export const addReferalUser = async (req, res, next) => {
+  try {
+    const sponser = req.query.id;
+    const userStatus = "pending";
+
+    const ownSponserId = generateRandomString();
+
+    const { username, email, phone, address,transactionPassword, password } = req.body;
+    // const packageChosen = findPackage(packageAmount);
+    // const packageData = await Package.findOne({ name: packageChosen });
+    //console.log(packageData);
+    const hashedPassword = bcryptjs.hashSync(password, 10);
+    const hashedTxnPassword = bcryptjs.hashSync(transactionPassword, 10);
+
+    const existingUser = await User.findOne({ email });
+    const existingUserByPhone = await User.findOne({ phone });
+
+    if (existingUser || existingUserByPhone) {
+      return next(errorHandler(401, "User Already Exist"));
+    }
+
+
+    const user = await User.create({
+      sponser,
+      username,
+      email,
+      phone,
+      address,
+      transactionPassword:hashedTxnPassword,
+      // packageAmount,
+      // packageChosen: packageData._id,
+      password: hashedPassword,
+      ownSponserId,
+      userStatus,
+    });
+    if (user) {    
+          await sendMail(
+            user.email,
+            user.username,
+            user.ownSponserId,
+            transactionPassword,
+            password
+          );
+        
+
+        res.json({
+          _id: user._id,
+          sponser: user.sponser,
+          name: user.username,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          // packageAmount: user.packageAmount,
+          // packageChosen: user.packageChosen,
+          ownSponserId: user.ownSponserId,
+          userStatus: user.userStatus,
+        });
+      
+    } else {
+      return next(errorHandler(400, "Registration failed. Please try again!"));
+    }
+  } catch (error) {
+    next(error);
+    console.log(error);
+  }
+};
+
+// get add user by Referal link
+export const getAddReferalUser = async (req, res, next) => {
+  try {
+    const sponser = req.query.id;
+
+    const sponserData=await User.findOne(sponser);
+    const sponserId=sponserData.ownSponserId;
+
+    if (sponserData) {
+      return res.status(201).json({
+        sponserData,
+        sponserId:sponserId,
+        sts: "01",
+        msg: "User verification in progress!",
+      });
+    } else {
+      return next(
+        errorHandler(401, "Verification failed. Please try again!")
+      );
+    }
+  } catch (error) {
+    next(error);
+    console.log(error);
+  }
+};
+
 
 
 //verify users using Aadhaar card and Pancard
@@ -548,7 +632,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
     }
   }
    
-
+// post capital amount
   export const addPackageByUser=async(req,res,next)=>{
     const userId=req.user._id;
     try {
@@ -564,6 +648,33 @@ export const viewUserPackageDetails=async(req,res,next)=>{
           
 
             
+        const updatedUser = await userData.save();
+
+        if (updatedUser) {
+          res.status(200).json({updatedUser, msg: "User Fund top up request send to admin" });
+        }
+          
+        
+
+      }else{
+      next(errorHandler("User not found, Please Login first"));
+
+      }
+    } catch (error) {
+      console.log(error);
+      next(error)
+    }
+  }
+// get add capital amount
+  export const getaddPackageByUser=async(req,res,next)=>{
+    const userId=req.user._id;
+    const transactionID = generateTnxString();
+    try {
+   
+      const userData=await User.findById(userId)
+
+      if(userData){
+          userData.transactionID=transactionID; 
         const updatedUser = await userData.save();
 
         if (updatedUser) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 // import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import SimpleBar from 'simplebar-react';
@@ -15,6 +15,7 @@ import {
 } from 'reactstrap';
 import { MessageSquare } from 'react-feather';
 import * as Icon from 'react-feather';
+import { useNavigate } from 'react-router-dom';
 import MessageDD from './MessageDD';
 import MegaDD from './MegaDD';
 import NotificationDD from './NotificationDD';
@@ -23,11 +24,26 @@ import user1 from '../../assets/images/users/user4.jpg';
 import { ToggleMiniSidebar, ToggleMobileSidebar } from '../../store/customizer/CustomizerSlice';
 import ProfileDD from './ProfileDD';
 import Logo from '../logo/Logo';
+import { logout } from '../../store/authSlice';
 
 const Header = () => {
   const isDarkMode = useSelector((state) => state.customizer.isDark);
   const topbarColor = useSelector((state) => state.customizer.topbarBg);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // const loginInfo = localStorage.getItem("userInfo");
+  const { userInfo } = useSelector((state) => state.userLoginReducer);
+
+  const logoutFn = (e) => {
+    e.preventDefault();
+    dispatch(logout());
+  }
+
+  useEffect(() => {
+    if(!userInfo) navigate('/auth/loginformik');
+  }, [userInfo])
+  
 
   return (
     <Navbar
@@ -145,7 +161,7 @@ const Header = () => {
           <DropdownMenu className="ddWidth">
             <ProfileDD />
             <div className="p-2 px-3">
-              <Button color="danger" size="sm">
+              <Button color="danger" size="sm" onClick={logoutFn}>
                 Logout
               </Button>
             </div>

@@ -1,14 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button, Label, FormGroup, Container, Row, Col, Card, CardBody, Input } from 'reactstrap';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import AuthLogo from "../../layouts/logo/AuthLogo";
 import { ReactComponent as LeftBg } from '../../assets/images/bg/login-bgleft.svg';
 import { ReactComponent as RightBg } from '../../assets/images/bg/login-bg-right.svg';
+import { fetchUser } from '../../store/authSlice';
 
 const LoginFormik = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  const { userInfo } = useSelector((state) => state.userLoginReducer);
 
   const initialValues = {
     email: '',
@@ -21,6 +26,11 @@ const LoginFormik = () => {
       .min(6, 'Password must be at least 6 characters')
       .required('Password is required'),
   });
+
+  useEffect(() => {
+    if(userInfo) navigate('/')
+  }, [userInfo])
+  
 
   return (
     <div className="loginBox">
@@ -41,8 +51,11 @@ const LoginFormik = () => {
                   validationSchema={validationSchema}
                   onSubmit={(fields) => {
                     // eslint-disable-next-line no-alert
-                    alert(`SUCCESS!! :-)\n\n${JSON.stringify(fields, null, 4)}`);
-                    navigate('/');
+                    const {email, password} = fields;
+                    
+                    dispatch(fetchUser({email, password}));
+                    // alert(`SUCCESS!! :-)\n\n${JSON.stringify(fields, null, 4)}`);
+                    // navigate('/');
                   }}
                   render={({ errors, touched }) => (
                     <Form>

@@ -354,7 +354,9 @@ export const approveCapitalwithdrawal = async (req, res, next) => {
         userData.transactionCode="";
         userData.transactionID="";
         userData.capitalWithdrawHistory.push({
-          reportName:"capitalWithdraw",
+          reportName:"capitalWithdrawReport",
+          ownID:userData.ownSponserId,
+          packageName:userData.packageName,
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,
@@ -400,7 +402,9 @@ export const approveWalletWithdrawal = async (req, res, next) => {
         userData.walletTransactionCode="";
         userData.transactionID="";
         userData.walletWithdrawHistory.push({
-          reportName:"walletreport",
+          reportName:"walletWithdrawReport",
+          ownID:userData.ownSponserId,
+          packageName:userData.packageName,
           tnxID:tnxID,
           withdrawAmount: withdrawAmount,
           walletUrl:transactionCode,

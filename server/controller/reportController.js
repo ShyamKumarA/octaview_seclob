@@ -119,6 +119,9 @@ export const walletWithdrawReport=async(req,res,next)=>{
       //.select("username email phone walletWithdrawStatus walletWithdrawAmount");
       res.status(200).json({
         walletWithdrawHistory,
+        walletAmount:userData.walletAmount,
+        totalRefferalAmount:userData.referalIncome,
+        totalDailyBonus:userData.dailyROI,
         sts: "01",
         msg: "get wallet withdrawal report users Success",
       });
@@ -129,6 +132,29 @@ export const walletWithdrawReport=async(req,res,next)=>{
     next(error);
   }
 }
+
+//fund add history
+export const addFundHistory=async(req,res,next)=>{
+  const userId = req.user._id;
+try {
+  const userData = await User.findById(userId).populate("addFundHistory")
+  if (userData) {
+    const addFundHistory=userData.addFundHistory
+    //.select("username email phone walletWithdrawStatus walletWithdrawAmount");
+    res.status(200).json({
+      addFundHistory,
+      packagename:userData.packageName,
+      totalCapitalAmount:userData.packageAmount,
+      sts: "01",
+      msg: "get wallet withdrawal report users Success",
+    });
+  } else {
+    return next(errorHandler(401, "User Login Failed"));
+  }
+} catch (error) {
+  next(error);
+}
+} 
 
 
 //capital withdraw report
@@ -142,6 +168,7 @@ export const capitalWithdrawReport=async(req,res,next)=>{
       //.select("username email phone walletWithdrawStatus walletWithdrawAmount");
       res.status(200).json({
         capitalWithdrawHistory,
+        totalCapitalAmount:userData.packageAmount,
         sts: "01",
         msg: "get wallet withdrawal report users Success",
       });

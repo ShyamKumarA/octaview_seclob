@@ -92,9 +92,9 @@ const SalesOverview = () => {
             <tr>
               <th>#</th>
               <th>Name</th>
-              <th>Status</th>
               <th>Date</th>
-              <th>Price</th>
+              <th>Amount</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +106,8 @@ const SalesOverview = () => {
                 <td>
                   <h6 className="mb-0">{tdata.name}</h6>
                 </td>
+                <td>{tdata.date}</td>
+                <td>{tdata.price}</td>
                 <td>
                   {tdata.status === 'tax' ? (
                     <Badge color="danger" pill>{tdata.status}</Badge>
@@ -117,8 +119,6 @@ const SalesOverview = () => {
                     <Badge color="cyan" pill>{tdata.status}</Badge>
                   )}
                 </td>
-                <td>{tdata.date}</td>
-                <td>{tdata.price}</td>
               </tr>
             ))}
           </tbody>

@@ -3,11 +3,21 @@ import { Navigate } from 'react-router-dom';
 import Loadable from '../layouts/loader/Loadable';
 /****Layouts*****/
 
+
+
+const AcceptPackage = Loadable(lazy(() => import('../views/dashboards/AcceptPackages')));
+
+
+
+
+
 const FullLayout = Loadable(lazy(() => import('../layouts/FullLayout')));
 const BlankLayout = Loadable(lazy(() => import('../layouts/BlankLayout')));
 /***** Pages ****/
 
 const Minimal = Loadable(lazy(() => import('../views/dashboards/Minimal')));
+
+
 const Analytical = Loadable(lazy(() => import('../views/dashboards/Analytical')));
 const Demographical = Loadable(lazy(() => import('../views/dashboards/Demographical')));
 const Modern = Loadable(lazy(() => import('../views/dashboards/Modern')));
@@ -108,6 +118,11 @@ const ThemeRoutes = [
     children: [
       { path: '/', name: 'Home', element: <Navigate to="/dashboards/minimal" /> },
       { path: '/dashboards/minimal', name: 'Minimal', exact: true, element: <Minimal /> },
+
+
+      { path: '/accept-packages', name: 'AcceptPackages', exact: true, element: <AcceptPackage /> },
+
+
       { path: '/dashboards/analytical', name: 'Analytical', exact: true, element: <Analytical /> },
       { path: '/dashboards/demographical', name: 'Demographical', exact: true, element: <Demographical /> },
       { path: '/dashboards/modern', name: 'Modern', exact: true, element: <Modern /> },

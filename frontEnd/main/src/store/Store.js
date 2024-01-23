@@ -6,6 +6,9 @@ import ContactsReducer from './apps/contacts/ContactSlice';
 import EmailReducer from './apps/email/EmailSlice';
 import TicketReducer from './apps/ticket/TicketSlice';
 
+import userLoginReducer from './authSlice';
+import { packageManageReducer } from './packageSlice';
+
 export const store = configureStore({
   reducer: {
     customizer: CustomizerReducer,
@@ -14,6 +17,9 @@ export const store = configureStore({
     contactsReducer: ContactsReducer,
     emailReducer: EmailReducer,
     ticketReducer: TicketReducer,
+
+    userLoginReducer,
+    packageManageReducer
   },
 });
 
