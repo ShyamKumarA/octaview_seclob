@@ -539,30 +539,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
 
    // Add Fund to capital Amount by user
 
-   export const AddFund=async(req,res,next)=>{
-    const userId=req.user._id;
-    const {amount,transactionCode}=req.body;
-    try {
-      const user=await User.findById(userId);
-      if(user){
-        user.addFundStatus = "pending";
-        user.topUpAmount=amount;
-        user.transactionCode=transactionCode;
 
-            
-        const updatedUser = await user.save();
-
-        if (updatedUser) {
-          res.status(200).json({ msg: "User Fund top up request send to admin" });
-        }
-      } else {
-        next(errorHandler("User not Found"));
-      }
-
-    } catch (error) {
-      next(error)
-    }
-   }
 
    //change password
 
@@ -631,18 +608,46 @@ export const viewUserPackageDetails=async(req,res,next)=>{
       next(error)
     }
   }
+
+  //add topup by user
+
+  // export const AddFund=async(req,res,next)=>{
+  //   const userId=req.user._id;
+  //   const {amount,transactionCode}=req.body;
+  //   try {
+  //     const user=await User.findById(userId);
+  //     if(user){
+  //       user.addFundStatus = "pending";
+  //       user.topUpAmount=amount;
+  //       user.transactionCode=transactionCode;
+
+            
+  //       const updatedUser = await user.save();
+
+  //       if (updatedUser) {
+  //         res.status(200).json({ msg: "User Fund top up request send to admin" });
+  //       }
+  //     } else {
+  //       next(errorHandler("User not Found"));
+  //     }
+
+  //   } catch (error) {
+  //     next(error)
+  //   }
+  //  }
    
 // post capital amount
   export const addPackageByUser=async(req,res,next)=>{
     const userId=req.user._id;
     try {
     const {amount,transactionCode}=req.body;
-   
       const userData=await User.findById(userId)
-      console.log(userData);
       if(userData){
-        
+        if(userData.addPackageStatus=="approved"){
+        userData.addFundStatus = "pending";
+        }else{
           userData.addPackageStatus ="pending";
+        }
           userData.topUpAmount=amount;
           userData.transactionCode=transactionCode;
           
@@ -678,7 +683,7 @@ export const viewUserPackageDetails=async(req,res,next)=>{
         const updatedUser = await userData.save();
 
         if (updatedUser) {
-          res.status(200).json({updatedUser, msg: "User Fund top up request send to admin" });
+          res.status(200).json({transactionID, msg: "User Fund top up request send to admin" });
         }
           
         
